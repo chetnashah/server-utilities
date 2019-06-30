@@ -1,11 +1,27 @@
-
+require('dotenv').config();
 const express = require("express");
 const cors = require("cors");
 const app = express();
 const bodyParser = require("body-parser");
-const S3 = require("aws-sdk/clients/s3");
+const AWS = require("aws-sdk");
 const multer = require("multer");
 const PORT = 3000;
+const s3 = new AWS.S3();
+
+const s3config = {
+    region: 'ap-south-1',
+    apiVersion: '2006-03-01',
+    signatureVersion: 'v4',
+    accessKeyId: process.env.ACCESS_KEY_ID,
+    secretAccessKey: process.env.SECRET_ACCESS_KEY
+};
+
+console.log(s3config);
+
+const bucket = 'test-signing-upload-bucket';
+const expirySecs = 60*25;
+
+s3.config.update(s3config);
 
 // accept multipart/form-data which manipulates req.body and req.file/req.files
 const upload = multer({ 'dest': 'uploads/'});
@@ -27,16 +43,32 @@ app.get('/', (req, res) => {
 });
 
 app.get('/getPresignedUrl', (req, res) => {
-    if (!req.query.filename) {
+    if (!req.query.filename || !req.query['contenttype']) {
         return res.status(400).send({
-            "statusMessage": "Missing required field (filename)"
+            "statusMessage": "Missing required field (filename or content-type)"
         });
     }
 
-    return res.status(200).send({
-        "url": "somes3urlyoucanusetoupload.com"
+    const signingOptions = {
+        'Bucket': bucket,
+        'Key': req.query.filename,
+        Expires: expirySecs,
+        'ContentType': req.query['contenttype']
+    };
+    console.log(signingOptions);
+
+    s3.getSignedUrl('putObject', signingOptions, (err, url) => {
+        if(err) {
+            return res.status(500).send({
+                error: JSON.stringify(err)
+            });
+        }
+        return res.status(200).send({
+            url: url
+        });
     });
 });
+
 
 app.get('/renderform', (req, res) => {
     return res.sendFile(__dirname + "/index.html");
