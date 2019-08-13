@@ -7,6 +7,10 @@ const AWS = require("aws-sdk");
 const multer = require("multer");
 const PORT = 3000;
 const s3 = new AWS.S3();
+import { User } from './models';
+import passport from 'passport';
+import {Strategy as LocalStrategy} from 'passport-local';
+import bcrypt from 'bcryptjs';
 
 const s3config = {
     region: 'ap-south-1',
@@ -36,10 +40,56 @@ app.use(bodyParser.json());
 // accept application/x-www-form-urlencoded
 app.use(bodyParser.urlencoded({ extended: false }));
 
+// passport local middleware
+passport.use(new LocalStrategy({
+    usernameField: 'email',
+    passwordField: 'password'
+},
+    function(username, password, done){
+        console.log('password localstrategy got username: ', username, ' password: ', password);
+        User;
+        done(null, false, { message: 'Missing implementation!'});
+    }
+));
+
+app.get('/login', (req,res, next) => {
+    res.status(200).send({
+        message: 'You have reached login!'
+    });
+});
+
+app.post('/login', 
+    passport.authenticate('local', {
+        successRedirect: '/',
+        failureRedirect: '/login',
+        failureFlash: false
+    })
+);
+
 app.get('/', (req, res) => {
     res.status(200).send(JSON.stringify({
         msg: 'hello world'
     }));
+});
+
+app.post('/registeruser', (req, res) => {
+    if(!req.body.email || !req.body.password || !req.body.phoneNumber){
+        return res.status(400).send("Missing required fields!");
+    }
+
+    //Note: arrow functions do not work with this bcrypt library
+    bcrypt.genSalt(10, function(err, salt) {
+        bcrypt.hash(req.body.password, salt, function(err, hash) {
+            if(err) {
+                return res.status(500).send(err);
+            }
+            User.create({ password: hash, email: req.body.email, phoneNumber: req.body.phoneNumber }).then(user => {
+                console.log("user's auto-generated ID:", user.id);
+                return res.status(200).send(JSON.stringify(user));
+            });        
+        })
+    })
+
 });
 
 app.get('/getPresignedUrl', (req, res) => {
