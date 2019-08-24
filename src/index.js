@@ -118,6 +118,10 @@ passport.use(new LocalStrategy({
                             plain: true
                         }));
                         done(null, user);
+                    } else {
+                        done(null, false, {
+                            message: 'Incorrect password!'
+                        });
                     }
                 })
             }
