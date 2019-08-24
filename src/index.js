@@ -173,7 +173,10 @@ app.post('/login',
     function(req, res, next) {
         passport.authenticate('local', function(err, user, info) {
             if (err) { return next(err); }
-            if (!user) { return res.redirect('/login'); }
+            if (!user) { 
+                var redir = { redirect: "/login" };
+                return res.status(200).json(redir);    
+            }
             req.session.save(function(err) {
               if (err) { return next(err); }
               console.log('res.headers = ');
