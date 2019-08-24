@@ -95,6 +95,7 @@ const upload = multer({
 });
 
 app.use(cors({
+    credentials: true,
     origin: ['http://localhost:3000','http://localhost:5000', 'http://localhost:4000', 'http://localhost:7000', 'https://utilities-frontend.jayshah.co']
 }));
 
