@@ -109,7 +109,7 @@ app.use(bodyParser.urlencoded({
     extended: false
 }));
 
-app.get('/pinger', (req, res, next)=> {
+app.get('/pinger', passport.authenticate('local'),(req, res, next)=> {
     if (req.user) {
         return res.status(200).send('authenticated pong');
     }
