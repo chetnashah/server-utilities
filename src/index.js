@@ -28,6 +28,7 @@ const SQLiteStore = require('connect-sqlite3')(session);
 
 app.use(session({
     secret: 'keyboard cat',
+    cookie: { maxAge: 60000 },
     resave: true,
     saveUninitialized: true
 }));
