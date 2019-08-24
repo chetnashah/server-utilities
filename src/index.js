@@ -111,6 +111,8 @@ app.use(cors({
 
 
 app.get('/pinger', (req, res, next)=> {
+    console.log('pinger, req.session - ');
+    console.log(req.session);
     if (req.isAuthenticated()) {
         return res.status(200).send('authenticated pong');
     }
