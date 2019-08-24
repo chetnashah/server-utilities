@@ -241,8 +241,8 @@ app.post('/formpostwithfile', upload.single('avatar'), (req, res, next) => {
 
 app.get('*', (req, res, next) => {
     console.log('got host: ', req.host);
-    console.log('got origin: ', req.origin);
-    res.redirect('back');
+    console.log('got headers: ', req.headers);
+    res.redirect('https://utilities-frontend.jayshah.co/');
 });
 
 app.listen(PORT, () => {
