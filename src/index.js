@@ -49,7 +49,7 @@ const SQLiteStore = require('connect-sqlite3')(session);
 
 app.use(session({
     secret: 'keyboard cat',
-    cookie: { maxAge: 60000 },
+    cookie: { maxAge: 60000 , domain: '.jayshah.co'},
     resave: true,
     httpOnly: false,
     secure: false,
