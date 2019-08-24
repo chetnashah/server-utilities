@@ -12,6 +12,15 @@ import passport from 'passport';
 import {Strategy as LocalStrategy} from 'passport-local';
 import bcrypt from 'bcryptjs';
 
+var admin = require('firebase-admin');
+var serviceAccount = require("../.env/service-utilities-firebase-adminsdk-bhw83-0b99ce539e.json");
+
+admin.initializeApp({
+  credential: admin.credential.cert(serviceAccount),
+  databaseURL: "https://service-utilities.firebaseio.com"
+});
+
+
 const s3config = {
     region: 'ap-south-1',
     apiVersion: '2006-03-01',
@@ -65,6 +74,33 @@ app.post('/login',
         failureFlash: false
     })
 );
+
+app.post('/postfcmtoken',(req, res) => {
+
+    var registrationToken = req.body.fcmToken;
+
+var message = {
+  data: {
+    score: '850',
+    time: '2:45'
+  },
+  token: registrationToken
+};
+console.log(message);
+// Send a message to the device corresponding to the provided
+// registration token.
+admin.messaging().send(message)
+  .then((response) => {
+    // Response is a message ID string.
+    console.log('Successfully sent message:', response);
+    res.status(200).send();
+  })
+  .catch((error) => {
+      res.status(500).send();
+    console.log('Error sending message:', error);
+  });
+
+});
 
 app.get('/', (req, res) => {
     res.status(200).send(JSON.stringify({
