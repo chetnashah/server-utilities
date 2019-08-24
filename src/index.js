@@ -7,17 +7,45 @@ const AWS = require("aws-sdk");
 const multer = require("multer");
 const PORT = 3000;
 const s3 = new AWS.S3();
-import { User } from './models';
+import {
+    User
+} from './models';
 import passport from 'passport';
-import {Strategy as LocalStrategy} from 'passport-local';
+import {
+    Strategy as LocalStrategy
+} from 'passport-local';
 import bcrypt from 'bcryptjs';
 
 var admin = require('firebase-admin');
 var serviceAccount = require("../.env/service-utilities-firebase-adminsdk-bhw83-0b99ce539e.json");
 
 admin.initializeApp({
-  credential: admin.credential.cert(serviceAccount),
-  databaseURL: "https://service-utilities.firebaseio.com"
+    credential: admin.credential.cert(serviceAccount),
+    databaseURL: "https://service-utilities.firebaseio.com"
+});
+
+app.use(require('express-session')({
+    secret: 'keyboard cat',
+    resave: true,
+    saveUninitialized: true
+}));
+app.use(passport.initialize());
+app.use(passport.session());
+
+passport.serializeUser(function (user, done) {
+    done(null, user.id);
+});
+
+passport.deserializeUser(function (id, done) {
+    User.findOne({
+        where: {
+            id: id
+        }
+    }).then(user => {
+        done(null, user);
+    }).catch(err => {
+        done(err, null);
+    })
 });
 
 
@@ -32,42 +60,74 @@ const s3config = {
 console.log(s3config);
 
 const bucket = 'test-signing-upload-bucket';
-const expirySecs = 60*25;
+const expirySecs = 60 * 25;
 
 s3.config.update(s3config);
 
 // accept multipart/form-data which manipulates req.body and req.file/req.files
-const upload = multer({ 'dest': 'uploads/'});
+const upload = multer({
+    'dest': 'uploads/'
+});
 
 app.use(cors({
-    origin: ['http://localhost:5000', 'http://localhost:4000', 'http://localhost:7000']
+    origin: ['http://localhost:3000','http://localhost:5000', 'http://localhost:4000', 'http://localhost:7000']
 }));
 
 // accept application/json
 app.use(bodyParser.json());
 
 // accept application/x-www-form-urlencoded
-app.use(bodyParser.urlencoded({ extended: false }));
+app.use(bodyParser.urlencoded({
+    extended: false
+}));
 
 // passport local middleware
 passport.use(new LocalStrategy({
-    usernameField: 'email',
-    passwordField: 'password'
-},
-    function(username, password, done){
+        usernameField: 'email',
+        passwordField: 'password'
+    },
+    function (username, password, done) {
+        if (!username || !password) {
+            done('Missing username or password', null);
+        }
+        User.findOne({
+            where: {
+                email: username
+            }
+        }).then((user) => {
+            console.log('found user: ', user);
+
+            if (!user) {
+                done('No user found', null);
+            }
+            if (user) {
+                bcrypt.compare(password, user.password, (err, success) => {
+                    if (err) {
+                        done('error comparing password: ' + err, null);
+                    }
+                    if (success) {
+                        console.log('successfully authenticated user: ', user.get({
+                            plain: true
+                        }));
+                        done(null, user);
+                    }
+                })
+            }
+        }).catch((err) => {
+            console.log('error finding user in db');
+            done('catch blcok error: ' + err);
+        })
         console.log('password localstrategy got username: ', username, ' password: ', password);
-        User;
-        done(null, false, { message: 'Missing implementation!'});
     }
 ));
 
-app.get('/login', (req,res, next) => {
+app.get('/login', (req, res, next) => {
     res.status(200).send({
         message: 'You have reached login!'
     });
 });
 
-app.post('/login', 
+app.post('/login',
     passport.authenticate('local', {
         successRedirect: '/',
         failureRedirect: '/login',
@@ -75,54 +135,52 @@ app.post('/login',
     })
 );
 
-app.post('/postfcmtoken',(req, res) => {
+app.post('/postfcmtoken', (req, res) => {
 
     var registrationToken = req.body.fcmToken;
 
-var message = {
-  data: {
-    score: '850',
-    time: '2:45'
-  },
-  token: registrationToken
-};
-console.log(message);
-// Send a message to the device corresponding to the provided
-// registration token.
-admin.messaging().send(message)
-  .then((response) => {
-    // Response is a message ID string.
-    console.log('Successfully sent message:', response);
-    res.status(200).send();
-  })
-  .catch((error) => {
-      res.status(500).send();
-    console.log('Error sending message:', error);
-  });
+    var message = {
+        data: {
+            score: '850',
+            time: '2:45'
+        },
+        token: registrationToken
+    };
+    console.log(message);
+    // Send a message to the device corresponding to the provided
+    // registration token.
+    admin.messaging().send(message)
+        .then((response) => {
+            // Response is a message ID string.
+            console.log('Successfully sent message:', response);
+            res.status(200).send();
+        })
+        .catch((error) => {
+            res.status(500).send();
+            console.log('Error sending message:', error);
+        });
 
-});
-
-app.get('/', (req, res) => {
-    res.status(200).send(JSON.stringify({
-        msg: 'hello world'
-    }));
 });
 
 app.post('/registeruser', (req, res) => {
-    if(!req.body.email || !req.body.password || !req.body.phoneNumber){
+    if (!req.body.email || !req.body.password || !req.body.phoneNumber) {
         return res.status(400).send("Missing required fields!");
     }
 
     //Note: arrow functions do not work with this bcrypt library
-    bcrypt.genSalt(10, function(err, salt) {
-        bcrypt.hash(req.body.password, salt, function(err, hash) {
-            if(err) {
+    bcrypt.genSalt(10, function (err, salt) {
+        bcrypt.hash(req.body.password, salt, function (err, hash) {
+            if (err) {
                 return res.status(500).send(err);
             }
-            User.create({ password: hash, email: req.body.email, phoneNumber: req.body.phoneNumber }).then(user => {
+            User.create({
+                password: hash,
+                email: req.body.email,
+                phoneNumber: req.body.phoneNumber
+            }).then(user => {
                 console.log("user's auto-generated ID:", user.id);
                 return res.status(200).send(JSON.stringify(user));
-            });        
+            });
         })
     })
 
@@ -144,7 +202,7 @@ app.get('/getPresignedUrl', (req, res) => {
     console.log(signingOptions);
 
     s3.getSignedUrl('putObject', signingOptions, (err, url) => {
-        if(err) {
+        if (err) {
             return res.status(500).send({
                 error: JSON.stringify(err)
             });
@@ -162,10 +220,17 @@ app.get('/renderform', (req, res) => {
 
 app.post('/formpostwithfile', upload.single('avatar'), (req, res, next) => {
     console.log('req.file is avatar file & req.body will hold text fields');
-    return res.status(200).send({"statusMessage": "Uploaded file successfully using post form"});
+    return res.status(200).send({
+        "statusMessage": "Uploaded file successfully using post form"
+    });
+});
+
+app.get('*', (req, res, next) => {
+    console.log('got host: ', req.host);
+    console.log('got origin: ', req.origin);
+    res.redirect('back');
 });
 
 app.listen(PORT, () => {
     console.log(`App listening on Port: ${PORT}`);
 });
-
