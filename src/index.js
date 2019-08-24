@@ -26,7 +26,7 @@ admin.initializeApp({
 const session = require('express-session');
 const SQLiteStore = require('connect-sqlite3')(session);
 
-app.use(express.session({
+app.use(session({
     secret: 'keyboard cat',
     resave: true,
     saveUninitialized: true
