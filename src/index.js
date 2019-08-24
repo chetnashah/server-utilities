@@ -146,7 +146,15 @@ app.post('/login',
         successRedirect: '/',
         failureRedirect: '/login',
         failureFlash: false
-    })
+    }), (req, res,next) => {
+        if (req.user) {
+            var redir = { redirect: "/" };
+            return res.status(200).json(redir);
+      } else {
+            var redir = { redirect: '/login'};
+            return res.status(200).json(redir);
+      }
+    }
 );
 
 app.post('/postfcmtoken', (req, res) => {
