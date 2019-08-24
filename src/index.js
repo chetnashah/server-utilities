@@ -189,7 +189,7 @@ app.post('/login',
                 var redir = { redirect: "/login" };
                 return res.status(200).json(redir);    
             }
-            req.session.save(function(err) {
+            req.logIn(user, function(err) {
               if (err) { return next(err); }
               console.log('res.headers = ');
               console.log(res.getHeaders());  
