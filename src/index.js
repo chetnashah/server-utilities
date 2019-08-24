@@ -98,7 +98,9 @@ passport.use(new LocalStrategy({
             console.log('found user: ', user);
 
             if (!user) {
-                done('No user found', null);
+                done('No user found', null,{
+                    message:'no user found'
+                });
             }
             if (user) {
                 bcrypt.compare(password, user.password, (err, success) => {
