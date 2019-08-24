@@ -189,7 +189,7 @@ app.post('/login',
                 var redir = { redirect: "/login" };
                 return res.status(200).json(redir);    
             }
-            req.logIn(user, function(err) {
+            req.logIn(user, function(err) {// this is necessary to setup req.user from session
               if (err) { return next(err); }
               console.log('res.headers = ');
               console.log(res.getHeaders());  
