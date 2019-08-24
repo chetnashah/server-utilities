@@ -110,8 +110,8 @@ app.use(cors({
 
 
 
-app.get('/pinger', passport.authenticate('local'),(req, res, next)=> {
-    if (req.user) {
+app.get('/pinger', (req, res, next)=> {
+    if (req.isAuthenticated()) {
         return res.status(200).send('authenticated pong');
     }
     return res.status(200).send('pong');
