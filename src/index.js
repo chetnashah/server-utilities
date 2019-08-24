@@ -149,7 +149,9 @@ app.get('/login', (req, res, next) => {
 app.post('/login',
     passport.authenticate('local'), (req, res,next) => {
         if (req.user) {
+            console.log('req session start');
             console.log(req.session);
+            console.log('req session end');
             req.session.save((err) => {
                 if (err) {
                     return next(err);
