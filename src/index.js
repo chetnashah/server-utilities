@@ -21,21 +21,21 @@ morgan.token('allResHeaders', function (req, res) {
     return JSON.stringify(res.getHeaders());
 })
 
-app.use(
-    morgan(function (tokens, req, res) {
-        return [
-        '---------st--------',
-          tokens.method(req, res),
-          tokens.url(req, res),
-          tokens.status(req, res),
-          tokens.res(req, res, 'content-length'), '-',
-          tokens['response-time'](req, res),
-          'msssssssssss',
-          tokens.allResHeaders(req, res),
-          '---------end---------'
-        ].join(' ')
-      })      
-)
+// app.use(
+//     morgan(function (tokens, req, res) {
+//         return [
+//         '---------st--------',
+//           tokens.method(req, res),
+//           tokens.url(req, res),
+//           tokens.status(req, res),
+//           tokens.res(req, res, 'content-length'), '-',
+//           tokens['response-time'](req, res),
+//           'msssssssssss',
+//           tokens.allResHeaders(req, res),
+//           '---------end---------'
+//         ].join(' ')
+//       })      
+// )
 
 var admin = require('firebase-admin');
 var serviceAccount = require("../envfiles/service-utilities-firebase-adminsdk-bhw83-0b99ce539e.json");
@@ -49,8 +49,10 @@ const SQLiteStore = require('connect-sqlite3')(session);
 
 app.use(session({
     secret: 'keyboard cat',
-    cookie: { maxAge: 60000, domain: 'https://utilities-frontend.jayshah.co' },
+    cookie: { maxAge: 60000 },
     resave: true,
+    httpOnly: false,
+    secure: false,
     saveUninitialized: true,
     store: new SQLiteStore(),
 }));
@@ -107,11 +109,11 @@ app.use(bodyParser.urlencoded({
     extended: false
 }));
 
-app.get('/ping', passport.authenticate('local'), (req, res, next)=> {
+app.get('/pinger', (req, res, next)=> {
     if (req.user) {
         return res.status(200).send('authenticated pong');
     }
-    res.status(200).send('pong');
+    return res.status(200).send('pong');
 });
 
 // passport local middleware
