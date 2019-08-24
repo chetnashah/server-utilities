@@ -149,8 +149,11 @@ app.get('/login', (req, res, next) => {
 app.post('/login',
     passport.authenticate('local'), (req, res,next) => {
         if (req.user) {
-            var redir = { redirect: "/" };
-            return res.status(200).json(redir);
+            req.logIn(user, function(err) {
+                if (err) { return next(err); }
+                var redir = { redirect: "/" };
+                return res.status(200).json(redir);    
+              });
       } else {
             var redir = { redirect: '/login'};
             return res.status(200).json(redir);
