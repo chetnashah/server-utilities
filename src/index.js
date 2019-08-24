@@ -81,6 +81,10 @@ app.use(bodyParser.urlencoded({
     extended: false
 }));
 
+app.get('/ping', (req, res, next)=> {
+    res.status(200).send('pong');
+});
+
 // passport local middleware
 passport.use(new LocalStrategy({
         usernameField: 'email',
