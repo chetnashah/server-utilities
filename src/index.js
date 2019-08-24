@@ -83,7 +83,10 @@ app.use(bodyParser.urlencoded({
     extended: false
 }));
 
-app.get('/ping', (req, res, next)=> {
+app.get('/ping', passport.authenticate('local'), (req, res, next)=> {
+    if (req.user) {
+        return res.status(200).send('authenticated pong');
+    }
     res.status(200).send('pong');
 });
 
