@@ -17,7 +17,7 @@ import {
 import bcrypt from 'bcryptjs';
 
 var admin = require('firebase-admin');
-var serviceAccount = require("../.env/service-utilities-firebase-adminsdk-bhw83-0b99ce539e.json");
+var serviceAccount = require("../envfiles/service-utilities-firebase-adminsdk-bhw83-0b99ce539e.json");
 
 admin.initializeApp({
     credential: admin.credential.cert(serviceAccount),
