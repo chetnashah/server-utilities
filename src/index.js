@@ -149,6 +149,7 @@ app.get('/login', (req, res, next) => {
 app.post('/login',
     passport.authenticate('local'), (req, res,next) => {
         if (req.user) {
+            console.log(req.session);
             req.session.save((err) => {
                 if (err) {
                     return next(err);
