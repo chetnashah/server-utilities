@@ -155,6 +155,8 @@ app.post('/login',
             if (!user) { return res.redirect('/login'); }
             req.logIn(user, function(err) {
               if (err) { return next(err); }
+              console.log('res.headers = ');
+              console.log(res.headers);  
               var redir = { redirect: "/" };
               return res.status(200).json(redir);    
           });
