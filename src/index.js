@@ -149,25 +149,34 @@ app.get('/login', (req, res, next) => {
 });
 
 app.post('/login',
-    passport.authenticate('local'), (req, res,next) => {
-        if (req.user) {
-            console.log('req session start');
-            console.log(req.session);
-            console.log('req session end');
-            req.session.save((err) => {
-                if (err) {
-                    return next(err);
-                }
-                console.log('res.headers = ');
-                console.log(res.getHeaders());
-                var redir = { redirect: "/" };
-                return res.status(200).json(redir);    
-            });
-      } else {
-            var redir = { redirect: '/login'};
-            return res.status(200).json(redir);
-      }
+    function(req, res, next) {
+        passport.authenticate('local', function(err, user, info) {
+            if (err) { return next(err); }
+            if (!user) { return res.redirect('/login'); }
+            req.logIn(user, function(err) {
+              if (err) { return next(err); }
+              var redir = { redirect: "/" };
+              return res.status(200).json(redir);    
+          });
+          })(req, res, next);        
     }
+    // passport.authenticate('local'), (req, res,next) => {
+    //     if (req.user) {
+    //         console.log('req session start');
+    //         console.log(req.session);
+    //         console.log('req session end');
+    //         req.session.save((err) => {
+    //             if (err) {
+    //                 return next(err);
+    //             }
+    //             console.log('res.headers = ');
+    //             console.log(res.getHeaders());
+    //         });
+    //   } else {
+    //         var redir = { redirect: '/login'};
+    //         return res.status(200).json(redir);
+    //   }
+    // }
 );
 
 app.post('/postfcmtoken', (req, res) => {
