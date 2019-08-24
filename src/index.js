@@ -99,17 +99,19 @@ passport.use(new LocalStrategy({
                 email: username
             }
         }).then((user) => {
-            console.log('found user: ', user);
+            console.log('found user: ', user.get({ plain: true}));
 
             if (!user) {
-                done('No user found', null,{
+                done('No user found', false,{
                     message:'no user found'
                 });
             }
             if (user) {
                 bcrypt.compare(password, user.password, (err, success) => {
                     if (err) {
-                        done('error comparing password: ' + err, null);
+                        done(null, false, {
+                            message: 'error comparing password'
+                        });
                     }
                     if (success) {
                         console.log('successfully authenticated user: ', user.get({
@@ -121,7 +123,9 @@ passport.use(new LocalStrategy({
             }
         }).catch((err) => {
             console.log('error finding user in db');
-            done('catch blcok error: ' + err);
+            done(null, false, {
+                message: 'catch block error!'
+            });
         })
         console.log('password localstrategy got username: ', username, ' password: ', password);
     }
