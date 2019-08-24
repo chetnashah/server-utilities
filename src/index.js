@@ -17,6 +17,13 @@ import {
 } from 'passport-local';
 import bcrypt from 'bcryptjs';
 
+// accept application/json
+app.use(bodyParser.json());
+
+// accept application/x-www-form-urlencoded
+app.use(bodyParser.urlencoded({
+    extended: false
+}));
 morgan.token('allResHeaders', function (req, res) { 
     return JSON.stringify(res.getHeaders());
 })
@@ -101,13 +108,7 @@ app.use(cors({
     origin: ['http://localhost:3000','http://localhost:5000', 'http://localhost:4000', 'http://localhost:7000', 'https://utilities-frontend.jayshah.co']
 }));
 
-// accept application/json
-app.use(bodyParser.json());
 
-// accept application/x-www-form-urlencoded
-app.use(bodyParser.urlencoded({
-    extended: false
-}));
 
 app.get('/pinger', passport.authenticate('local'),(req, res, next)=> {
     if (req.user) {
