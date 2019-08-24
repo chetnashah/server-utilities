@@ -263,7 +263,7 @@ app.post('/formpostwithfile', upload.single('avatar'), (req, res, next) => {
 app.get('*', (req, res, next) => {
     console.log('got host: ', req.host);
     console.log('got headers: ', req.headers);
-    res.redirect('https://utilities-frontend.jayshah.co/');
+    res.status(200).send();
 });
 
 app.listen(PORT, () => {
