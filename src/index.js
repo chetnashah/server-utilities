@@ -67,6 +67,7 @@ app.use(passport.initialize());
 app.use(passport.session());
 
 passport.serializeUser(function (user, done) {
+    console.log('serializing user: ', user.id);
     done(null, user.id);
 });
 
@@ -76,8 +77,11 @@ passport.deserializeUser(function (id, done) {
             id: id
         }
     }).then(user => {
+        console.log('desrialized user:');
+        console.log(user);
         done(null, user);
     }).catch(err => {
+        console.log('error deserializing user: id = ', id);
         done(err, null);
     })
 });
