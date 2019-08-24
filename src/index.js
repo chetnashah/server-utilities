@@ -5,6 +5,7 @@ const app = express();
 const bodyParser = require("body-parser");
 const AWS = require("aws-sdk");
 const multer = require("multer");
+const morgan = require('morgan');
 const PORT = 3000;
 const s3 = new AWS.S3();
 import {
@@ -15,6 +16,8 @@ import {
     Strategy as LocalStrategy
 } from 'passport-local';
 import bcrypt from 'bcryptjs';
+
+app.use(morgan('combined'))
 
 var admin = require('firebase-admin');
 var serviceAccount = require("../envfiles/service-utilities-firebase-adminsdk-bhw83-0b99ce539e.json");
