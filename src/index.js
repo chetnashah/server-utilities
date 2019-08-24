@@ -17,15 +17,22 @@ import {
 } from 'passport-local';
 import bcrypt from 'bcryptjs';
 
+morgan.token('allResHeaders', function (req, res) { 
+    return JSON.stringify(res.getHeaders());
+})
+
 app.use(
     morgan(function (tokens, req, res) {
         return [
+        '---------st--------',
           tokens.method(req, res),
           tokens.url(req, res),
           tokens.status(req, res),
           tokens.res(req, res, 'content-length'), '-',
           tokens['response-time'](req, res),
-          'msssssssssss'
+          'msssssssssss',
+          tokens.allResHeaders(req, res),
+          '---------end---------'
         ].join(' ')
       })      
 )
