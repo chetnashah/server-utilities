@@ -30,7 +30,8 @@ app.use(session({
     secret: 'keyboard cat',
     cookie: { maxAge: 60000 },
     resave: true,
-    saveUninitialized: true
+    saveUninitialized: true,
+    store: new SQLiteStore(),
 }));
 app.use(passport.initialize());
 app.use(passport.session());
