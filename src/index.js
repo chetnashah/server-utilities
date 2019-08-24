@@ -23,8 +23,10 @@ admin.initializeApp({
     credential: admin.credential.cert(serviceAccount),
     databaseURL: "https://service-utilities.firebaseio.com"
 });
+const session = require('express-session');
+const SQLiteStore = require('connect-sqlite3')(session);
 
-app.use(require('express-session')({
+app.use(express.session({
     secret: 'keyboard cat',
     resave: true,
     saveUninitialized: true

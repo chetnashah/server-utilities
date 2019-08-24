@@ -13,6 +13,7 @@
     "aws-sdk": "2.485.0",
     "bcryptjs": "^2.4.3",
     "body-parser": "1.19.0",
+    "connect-sqlite3": "^0.9.11",
     "cors": "2.8.5",
     "cross-env": "5.2.0",
     "dotenv": "8.0.0",
