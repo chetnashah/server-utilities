@@ -9,7 +9,8 @@ const morgan = require('morgan');
 const PORT = 3000;
 const s3 = new AWS.S3();
 import {
-    User
+    User,
+    File
 } from './models';
 import passport from 'passport';
 import {
@@ -54,9 +55,11 @@ admin.initializeApp({
 const session = require('express-session');
 const SQLiteStore = require('connect-sqlite3')(session);
 
+const cookieDomain = process.env.NODE_ENV === 'production' ? '.jayshah.co' : 'localhost';
+
 app.use(session({
     secret: 'keyboard cat',
-    cookie: { maxAge: 60000 , domain: '.jayshah.co'},
+    cookie: { maxAge: 60000 , domain: cookieDomain},
     resave: true,
     httpOnly: false,
     secure: false,
@@ -86,7 +89,6 @@ passport.deserializeUser(function (id, done) {
     })
 });
 
-
 const s3config = {
     region: 'ap-south-1',
     apiVersion: '2006-03-01',
@@ -112,8 +114,6 @@ app.use(cors({
     origin: ['http://localhost:3000','http://localhost:5000', 'http://localhost:4000', 'http://localhost:7000', 'https://utilities-frontend.jayshah.co']
 }));
 
-
-
 app.get('/pinger', (req, res, next)=> {
     console.log('pinger, req.session - ');
     console.log(req.session);
@@ -122,7 +122,9 @@ app.get('/pinger', (req, res, next)=> {
     if (req.isAuthenticated()) {
         return res.status(200).send('authenticated pong');
     }
-    return res.status(200).send('pong');
+    return res.status(200).send({
+        action: 'logout'
+    });
 });
 
 // passport local middleware
@@ -198,24 +200,26 @@ app.post('/login',
           });
           })(req, res, next);        
     }
-    // passport.authenticate('local'), (req, res,next) => {
-    //     if (req.user) {
-    //         console.log('req session start');
-    //         console.log(req.session);
-    //         console.log('req session end');
-    //         req.session.save((err) => {
-    //             if (err) {
-    //                 return next(err);
-    //             }
-    //             console.log('res.headers = ');
-    //             console.log(res.getHeaders());
-    //         });
-    //   } else {
-    //         var redir = { redirect: '/login'};
-    //         return res.status(200).json(redir);
-    //   }
-    // }
 );
+
+app.post('/logout', function(req, res, next){
+    req.session.destroy(function() {
+        res.clearCookie('connect.sid');
+        return res.status(200).send(JSON.stringify({
+            redirect: '/'
+        }))
+    });    
+});
+
+app.get('/allmyfiles', (req, res) => {
+    if (!req.isAuthenticated) {
+        return res.status(200).send(JSON.stringify({
+            statusCode: -1,
+            statusMessage: "Invalid session",
+            action: 'logout'
+        }));
+    }
+})
 
 app.post('/postfcmtoken', (req, res) => {
 
@@ -302,9 +306,30 @@ app.get('/renderform', (req, res) => {
 
 app.post('/formpostwithfile', upload.single('avatar'), (req, res, next) => {
     console.log('req.file is avatar file & req.body will hold text fields');
-    return res.status(200).send({
-        "statusMessage": "Uploaded file successfully using post form"
-    });
+    if (!req.isAuthenticated()){
+        return res.status(400).send({
+            message: 'User not authenticated, cannot perform operation'
+        });
+    }
+    File.create({
+        url: 'yettobedecided',
+        name: ''+Date.now(),
+        size: 100
+    }).then(file => {
+        console.log("file's auto-generated ID:", file.id);
+        console.log('req.user = ');
+        console.log(req.user);
+        req.user.setFiles([file]).then(() => {
+            // saved!
+            console.log('saved file with user:');
+            return res.status(200).send(JSON.stringify(file));    
+          }).catch(err => {
+              console.log('error saving user files');
+              return res.status(500).send(JSON.stringify(err));
+          });
+    }).catch(err => {
+        return res.status(500).send(JSON.stringify(err));
+    })
 });
 
 app.get('*', (req, res, next) => {
