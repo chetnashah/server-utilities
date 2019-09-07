@@ -2,7 +2,7 @@
 module.exports = {
     apps : [{
       name: 'server-utilities',
-      script: 'index.js',
+      script: 'dist/index.js',
   
       // Options reference: https://pm2.io/doc/en/runtime/reference/ecosystem-file/
       args: 'one two',
