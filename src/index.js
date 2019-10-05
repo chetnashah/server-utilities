@@ -25,24 +25,24 @@ app.use(bodyParser.json());
 app.use(bodyParser.urlencoded({
     extended: false
 }));
-morgan.token('allResHeaders', function (req, res) { 
+morgan.token('allResHeaders', function (req, res) {
     return JSON.stringify(res.getHeaders());
 })
 
 app.use(
     morgan(function (tokens, req, res) {
         return [
-        '---------st--------',
-          tokens.method(req, res),
-          tokens.url(req, res),
-          tokens.status(req, res),
-          tokens.res(req, res, 'content-length'), '-',
-          tokens['response-time'](req, res),
-          'msssssssssss',
-          tokens.allResHeaders(req, res),
-          '---------end---------'
+            '---------st--------',
+            tokens.method(req, res),
+            tokens.url(req, res),
+            tokens.status(req, res),
+            tokens.res(req, res, 'content-length'), '-',
+            tokens['response-time'](req, res),
+            'msssssssssss',
+            tokens.allResHeaders(req, res),
+            '---------end---------'
         ].join(' ')
-      })      
+    })
 )
 
 var admin = require('firebase-admin');
@@ -55,11 +55,14 @@ admin.initializeApp({
 const session = require('express-session');
 const SQLiteStore = require('connect-sqlite3')(session);
 
-const cookieDomain = process.env.NODE_ENV === 'production' ? '.jayshah.co' : 'localhost';
+const cookieDomain = process.env.NODE_ENV === 'production' ? 'utilities-frontend.jayshah.co' : 'localhost';
 
 app.use(session({
     secret: 'keyboard cat',
-    cookie: { maxAge: 60000 , domain: cookieDomain},
+    cookie: {
+        maxAge: 60000,
+        domain: cookieDomain
+    },
     resave: true,
     httpOnly: false,
     secure: false,
@@ -111,10 +114,10 @@ const upload = multer({
 
 app.use(cors({
     credentials: true,
-    origin: ['http://localhost:3000','http://localhost:5000', 'http://localhost:4000', 'http://localhost:7000', 'https://utilities-frontend.jayshah.co']
+    origin: ['http://localhost:3000', 'http://localhost:5000', 'http://localhost:4000', 'http://localhost:7000', 'https://utilities-frontend.jayshah.co']
 }));
 
-app.get('/pinger', (req, res, next)=> {
+app.get('/pinger', (req, res, next) => {
     console.log('pinger, req.session - ');
     console.log(req.session);
     console.log('pinger, req.user = ');
@@ -141,11 +144,13 @@ passport.use(new LocalStrategy({
                 email: username
             }
         }).then((user) => {
-            console.log('found user: ', user.get({ plain: true}));
+            console.log('found user: ', user.get({
+                plain: true
+            }));
 
             if (!user) {
-                done('No user found', false,{
-                    message:'no user found'
+                done('No user found', false, {
+                    message: 'no user found'
                 });
             }
             if (user) {
@@ -184,31 +189,40 @@ app.get('/login', (req, res, next) => {
 });
 
 app.post('/login',
-    function(req, res, next) {
-        passport.authenticate('local', function(err, user, info) {
-            if (err) { return next(err); }
-            if (!user) { 
-                var redir = { redirect: "/login" };
-                return res.status(200).json(redir);    
+    function (req, res, next) {
+        passport.authenticate('local', function (err, user, info) {
+            if (err) {
+                return next(err);
             }
-            req.logIn(user, function(err) {// this is necessary to setup req.user from session
-              if (err) { return next(err); }
-              console.log('res.headers = ');
-              console.log(res.getHeaders());  
-              var redir = { redirect: "/" };
-              return res.status(200).json(redir);    
-          });
-          })(req, res, next);        
+            if (!user) {
+                var redir = {
+                    redirect: "/login"
+                };
+                return res.status(200).json(redir);
+            }
+            req.logIn(user, function (err) { // this is necessary to setup req.user from session
+                if (err) {
+                    return next(err);
+                }
+                console.log('res.headers = ');
+                console.log(res.getHeaders());
+                var redir = {
+                    success: true,
+                    redirect: "/"
+                };
+                return res.status(200).json(redir);
+            });
+        })(req, res, next);
     }
 );
 
-app.post('/logout', function(req, res, next){
-    req.session.destroy(function() {
+app.post('/logout', function (req, res, next) {
+    req.session.destroy(function () {
         res.clearCookie('connect.sid');
         return res.status(200).send(JSON.stringify({
             redirect: '/'
         }))
-    });    
+    });
 });
 
 app.get('/allmyfiles', (req, res) => {
@@ -306,14 +320,14 @@ app.get('/renderform', (req, res) => {
 
 app.post('/formpostwithfile', upload.single('avatar'), (req, res, next) => {
     console.log('req.file is avatar file & req.body will hold text fields');
-    if (!req.isAuthenticated()){
+    if (!req.isAuthenticated()) {
         return res.status(400).send({
             message: 'User not authenticated, cannot perform operation'
         });
     }
     File.create({
         url: 'yettobedecided',
-        name: ''+Date.now(),
+        name: '' + Date.now(),
         size: 100
     }).then(file => {
         console.log("file's auto-generated ID:", file.id);
@@ -322,11 +336,11 @@ app.post('/formpostwithfile', upload.single('avatar'), (req, res, next) => {
         req.user.setFiles([file]).then(() => {
             // saved!
             console.log('saved file with user:');
-            return res.status(200).send(JSON.stringify(file));    
-          }).catch(err => {
-              console.log('error saving user files');
-              return res.status(500).send(JSON.stringify(err));
-          });
+            return res.status(200).send(JSON.stringify(file));
+        }).catch(err => {
+            console.log('error saving user files');
+            return res.status(500).send(JSON.stringify(err));
+        });
     }).catch(err => {
         return res.status(500).send(JSON.stringify(err));
     })
