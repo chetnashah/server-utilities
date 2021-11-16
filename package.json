@@ -10,7 +10,7 @@
   "author": "",
   "license": "MIT",
   "dependencies": {
-    "aws-sdk": "2.485.0",
+    "aws-sdk": "2.814.0",
     "bcryptjs": "^2.4.3",
     "body-parser": "1.19.0",
     "connect-sqlite3": "^0.9.11",
